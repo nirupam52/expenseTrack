@@ -1,0 +1,17 @@
+# Binary
+expensetrack
+__debug_bin*
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+
+# Environment
+.env
+
+# macOS
+.DS_Store
+
+# Editor
+.zed/
