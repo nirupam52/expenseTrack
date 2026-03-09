@@ -15,3 +15,6 @@ __debug_bin*
 
 # Editor
 .zed/
+
+# Air
+tmp/

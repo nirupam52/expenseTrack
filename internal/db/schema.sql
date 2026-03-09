@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS expenses (
     group_id    INTEGER REFERENCES groups(id) ON DELETE CASCADE,
     paid_by     INTEGER NOT NULL REFERENCES users(id),
     description TEXT    NOT NULL,
-    amount      INTEGER NOT NULL,
+    amount      REAL    NOT NULL,
     date        TEXT    NOT NULL,
     created_at  TEXT    NOT NULL DEFAULT (datetime('now'))
 );
@@ -41,6 +41,6 @@ CREATE TABLE IF NOT EXISTS expense_splits (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     expense_id INTEGER NOT NULL REFERENCES expenses(id) ON DELETE CASCADE,
     user_id    INTEGER NOT NULL REFERENCES users(id),
-    amount     INTEGER NOT NULL,
+    amount     REAL    NOT NULL,
     is_settled INTEGER NOT NULL DEFAULT 0
 );
