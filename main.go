@@ -8,6 +8,7 @@ import (
 
 	"github.com/nirupam52/expenseTrack/internal/config"
 	"github.com/nirupam52/expenseTrack/internal/db"
+	"github.com/nirupam52/expenseTrack/internal/response"
 )
 
 func main() {
@@ -28,11 +29,10 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	// Health-check — useful to confirm the server is running.
-	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintln(w, "ok")
-		log.Print("request received new")
+	mux.HandleFunc("GET /ping", func(w http.ResponseWriter, r *http.Request) {
+		if err := response.WriteSuccess(w, http.StatusOK, "we good bro :)"); err != nil {
+			log.Printf("failed to write response: %v", err)
+		}
 	})
 
 	addr := fmt.Sprintf(":%s", appConfig.Port)
