@@ -15,6 +15,7 @@ __debug_bin*
 
 # Editor
 .zed/
+.vscode/
 
 # Air
 tmp/
