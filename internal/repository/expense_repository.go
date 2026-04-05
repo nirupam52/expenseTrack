@@ -16,10 +16,10 @@ func NewExpenseRepository(db *sql.DB) *ExpenseRepository {
 	return &ExpenseRepository{db: db}
 }
 
-func (r *ExpenseRepository) CreateExpense(ctx context.Context, userID int64, description string, amount float64, date string) error {
-	query := `INSERT INTO expenses (paid_by, description, amount, date) VALUES (?, ?, ?, ?)`
+func (r *ExpenseRepository) CreateExpense(ctx context.Context, groupID *int64, userID int64, description string, amount float64, date string) error {
+	query := `INSERT INTO expenses (group_id, paid_by, description, amount, date) VALUES (?, ?, ?, ?, ?)`
 
-	_, err := r.db.ExecContext(ctx, query, userID, description, amount, date)
+	_, err := r.db.ExecContext(ctx, query, groupID, userID, description, amount, date)
 	if err != nil {
 		return fmt.Errorf("Error creating expense: %w", err)
 	}
@@ -28,12 +28,12 @@ func (r *ExpenseRepository) CreateExpense(ctx context.Context, userID int64, des
 }
 
 func (r *ExpenseRepository) GetExpenseByID(ctx context.Context, id int64) (*models.Expense, error) {
-	query := `SELECT id, paid_by, description, amount, date, created_at FROM expenses WHERE id = ?`
+	query := `SELECT id, group_id, paid_by, description, amount, date, created_at FROM expenses WHERE id = ?`
 
 	row := r.db.QueryRowContext(ctx, query, id)
 
 	var e models.Expense
-	err := row.Scan(&e.ID, &e.PaidBy, &e.Description, &e.Amount, &e.Date, &e.CreatedAt)
+	err := row.Scan(&e.ID, &e.GroupID, &e.PaidBy, &e.Description, &e.Amount, &e.Date, &e.CreatedAt)
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("expense not found")
 	}
@@ -45,7 +45,7 @@ func (r *ExpenseRepository) GetExpenseByID(ctx context.Context, id int64) (*mode
 }
 
 func (r *ExpenseRepository) ListExpensesByUser(ctx context.Context, userID int64) ([]*models.Expense, error) {
-	query := `SELECT id, paid_by, description, amount, date, created_at FROM expenses WHERE paid_by = ? ORDER BY date DESC`
+	query := `SELECT id, group_id, paid_by, description, amount, date, created_at FROM expenses WHERE paid_by = ? ORDER BY date DESC`
 
 	rows, err := r.db.QueryContext(ctx, query, userID)
 	if err != nil {
@@ -56,7 +56,7 @@ func (r *ExpenseRepository) ListExpensesByUser(ctx context.Context, userID int64
 	var expenses []*models.Expense
 	for rows.Next() {
 		var e models.Expense
-		if err := rows.Scan(&e.ID, &e.PaidBy, &e.Description, &e.Amount, &e.Date, &e.CreatedAt); err != nil {
+		if err := rows.Scan(&e.ID, &e.GroupID, &e.PaidBy, &e.Description, &e.Amount, &e.Date, &e.CreatedAt); err != nil {
 			return nil, fmt.Errorf("scan expense: %w", err)
 		}
 		expenses = append(expenses, &e)

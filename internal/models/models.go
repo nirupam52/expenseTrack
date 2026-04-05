@@ -9,6 +9,7 @@ type User struct {
 
 type Expense struct {
 	ID          int64   `json:"id"`
+	GroupID     *int64  `json:"group_id,omitempty"`
 	PaidBy      int64   `json:"paid_by"`
 	Amount      float64 `json:"amount"`
 	Date        string  `json:"date"`

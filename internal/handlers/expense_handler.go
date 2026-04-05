@@ -19,6 +19,7 @@ func NewExpenseHandler(repo *repository.ExpenseRepository) *ExpenseHandler {
 }
 
 type CreateExpenseInput struct {
+	GroupID     *int64  `json:"group_id,omitempty"`
 	PaidBy      int64   `json:"paid_by"`
 	Amount      float64 `json:"amount"`
 	Date        string  `json:"date"`
@@ -61,7 +62,7 @@ func (h *ExpenseHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := context.Background()
-	err := h.repo.CreateExpense(ctx, input.PaidBy, input.Description, input.Amount, input.Date)
+	err := h.repo.CreateExpense(ctx, input.GroupID, input.PaidBy, input.Description, input.Amount, input.Date)
 	if err != nil {
 		response.WriteError(w, http.StatusInternalServerError, "failed to create expense")
 		return
