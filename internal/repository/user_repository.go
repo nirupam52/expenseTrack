@@ -16,8 +16,7 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 	return &UserRepository{db: db}
 }
 
-
-func (r *UserRepository) CreateUser (ctx context.Context, name string, email string, passwordHash string) error {
+func (r *UserRepository) CreateUser(ctx context.Context, name string, email string, passwordHash string) error {
 	query := "INSERT INTO users (name, email, password_hash) VALUES (?,?,?)"
 	_, err := r.db.ExecContext(ctx, query, name, email, passwordHash)
 	if err != nil {
@@ -52,4 +51,30 @@ func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (*mod
 		return nil, fmt.Errorf("Error fetching by user email : %w", err)
 	}
 	return &user, nil
+}
+
+func (r *UserRepository) ListUsers(ctx context.Context) ([]*models.User, error) {
+	query := "SELECT id, name, email, created_at FROM users"
+
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf(" list users: %w", err)
+	}
+	defer rows.Close()
+
+	var users []*models.User
+	for rows.Next() {
+		var u models.User
+		if err := rows.Scan(&u.ID, &u.Name, &u.Email, &u.CreatedAt); err != nil {
+			return nil, fmt.Errorf("scan user : %w", err)
+		}
+		users = append(users, &u)
+
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("list users rows: %w", err)
+	}
+	return users, nil
+
 }

@@ -32,6 +32,9 @@ func main() {
 	expenseRepo := repository.NewExpenseRepository(database)
 	expenseHandler := handlers.NewExpenseHandler(expenseRepo)
 
+	userRepo := repository.NewUserRepository(database)
+	userHandler := handlers.NewUserHandler(userRepo)
+
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /ping", func(w http.ResponseWriter, r *http.Request) {
@@ -41,6 +44,7 @@ func main() {
 	})
 
 	expenseHandler.RegisterRoutes(mux)
+	userHandler.RegisterRoutes(mux)
 
 	addr := fmt.Sprintf(":%s", appConfig.Port)
 	log.Printf("server listening on %s", addr)
