@@ -1,0 +1,22 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agent": {
+    "go-builder": {
+      "description": "Executes full development workflow: analyze -> plan -> execute -> review -> iterate -> security -> lint",
+      "mode": "subagent"
+    },
+    "go-reviewer": {
+      "description": "Performs strict code review for Go best practices and project conventions",
+      "mode": "subagent"
+    },
+    "security-auditor": {
+      "description": "Security auditor for scanning code vulnerabilities and hardcoded secrets",
+      "mode": "subagent"
+    }
+  },
+  "permission": {
+    "skill": {
+      "*": "allow"
+    }
+  }
+}
