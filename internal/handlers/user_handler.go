@@ -1,9 +1,8 @@
 package handlers
 
 import (
-	"context"
-	"database/sql"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -35,11 +34,6 @@ type UserResponse struct {
 }
 
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		response.WriteError(w, http.StatusMethodNotAllowed, "method not allowed")
-		return
-	}
-
 	var input RegisterInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		response.WriteError(w, http.StatusBadRequest, "invalid request body")
@@ -59,14 +53,12 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := context.Background()
-
-	_, err := h.repo.GetUserByEmail(ctx, input.Email)
+	_, err := h.repo.GetUserByEmail(r.Context(), input.Email)
 	if err == nil {
 		response.WriteError(w, http.StatusConflict, "email already registered")
 		return
 	}
-	if err != nil && (err != sql.ErrNoRows && err.Error() != "User not found") {
+	if !errors.Is(err, repository.ErrNotFound) {
 		response.WriteError(w, http.StatusInternalServerError, "failed to check email")
 		return
 	}
@@ -77,34 +69,27 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.repo.CreateUser(ctx, input.Name, input.Email, string(hashedPassword))
+	id, err := h.repo.CreateUser(r.Context(), input.Name, input.Email, string(hashedPassword))
 	if err != nil {
 		response.WriteError(w, http.StatusInternalServerError, "failed to create user")
 		return
 	}
 
-	user, err := h.repo.GetUserByEmail(ctx, input.Email)
+	user, err := h.repo.GetUserByID(r.Context(), id)
 	if err != nil {
 		response.WriteError(w, http.StatusInternalServerError, "failed to retrieve user")
 		return
 	}
 
-	userResp := UserResponse{
+	response.WriteSuccess(w, http.StatusCreated, UserResponse{
 		ID:        user.ID,
 		Name:      user.Name,
 		Email:     user.Email,
 		CreatedAt: user.CreatedAt,
-	}
-
-	response.WriteSuccess(w, http.StatusCreated, userResp)
+	})
 }
 
 func (h *UserHandler) GetByID(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		response.WriteError(w, http.StatusMethodNotAllowed, "method not allowed")
-		return
-	}
-
 	idStr := r.PathValue("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
@@ -112,31 +97,26 @@ func (h *UserHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := context.Background()
-	user, err := h.repo.GetUserById(ctx, id)
+	user, err := h.repo.GetUserByID(r.Context(), id)
 	if err != nil {
-		response.WriteError(w, http.StatusNotFound, "user not found")
+		if errors.Is(err, repository.ErrNotFound) {
+			response.WriteError(w, http.StatusNotFound, "user not found")
+			return
+		}
+		response.WriteError(w, http.StatusInternalServerError, "failed to get user")
 		return
 	}
 
-	userResp := UserResponse{
+	response.WriteSuccess(w, http.StatusOK, UserResponse{
 		ID:        user.ID,
 		Name:      user.Name,
 		Email:     user.Email,
 		CreatedAt: user.CreatedAt,
-	}
-
-	response.WriteSuccess(w, http.StatusOK, userResp)
+	})
 }
 
 func (h *UserHandler) List(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		response.WriteError(w, http.StatusMethodNotAllowed, "method not allowed")
-		return
-	}
-
-	ctx := context.Background()
-	users, err := h.repo.ListUsers(ctx)
+	users, err := h.repo.ListUsers(r.Context())
 	if err != nil {
 		response.WriteError(w, http.StatusInternalServerError, "failed to list users")
 		return

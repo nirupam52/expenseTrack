@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -33,11 +33,6 @@ type UpdateExpenseInput struct {
 }
 
 func (h *ExpenseHandler) Create(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		response.WriteError(w, http.StatusMethodNotAllowed, "method not allowed")
-		return
-	}
-
 	var input CreateExpenseInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		response.WriteError(w, http.StatusBadRequest, "invalid request body")
@@ -61,9 +56,7 @@ func (h *ExpenseHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := context.Background()
-	err := h.repo.CreateExpense(ctx, input.GroupID, input.PaidBy, input.Description, input.Amount, input.Date)
-	if err != nil {
+	if err := h.repo.CreateExpense(r.Context(), input.GroupID, input.PaidBy, input.Description, input.Amount, input.Date); err != nil {
 		response.WriteError(w, http.StatusInternalServerError, "failed to create expense")
 		return
 	}
@@ -72,11 +65,6 @@ func (h *ExpenseHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ExpenseHandler) GetByID(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		response.WriteError(w, http.StatusMethodNotAllowed, "method not allowed")
-		return
-	}
-
 	idStr := r.PathValue("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
@@ -84,10 +72,9 @@ func (h *ExpenseHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := context.Background()
-	expense, err := h.repo.GetExpenseByID(ctx, id)
+	expense, err := h.repo.GetExpenseByID(r.Context(), id)
 	if err != nil {
-		if err.Error() == "expense not found" {
+		if errors.Is(err, repository.ErrNotFound) {
 			response.WriteError(w, http.StatusNotFound, "expense not found")
 			return
 		}
@@ -99,11 +86,6 @@ func (h *ExpenseHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ExpenseHandler) ListByUser(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		response.WriteError(w, http.StatusMethodNotAllowed, "method not allowed")
-		return
-	}
-
 	userIDStr := r.URL.Query().Get("user_id")
 	if userIDStr == "" {
 		response.WriteError(w, http.StatusBadRequest, "user_id query parameter is required")
@@ -116,8 +98,7 @@ func (h *ExpenseHandler) ListByUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := context.Background()
-	expenses, err := h.repo.ListExpensesByUser(ctx, userID)
+	expenses, err := h.repo.ListExpensesByUser(r.Context(), userID)
 	if err != nil {
 		response.WriteError(w, http.StatusInternalServerError, "failed to list expenses")
 		return
@@ -127,11 +108,6 @@ func (h *ExpenseHandler) ListByUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ExpenseHandler) Update(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPut {
-		response.WriteError(w, http.StatusMethodNotAllowed, "method not allowed")
-		return
-	}
-
 	idStr := r.PathValue("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
@@ -145,10 +121,13 @@ func (h *ExpenseHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := context.Background()
-	existing, err := h.repo.GetExpenseByID(ctx, id)
+	existing, err := h.repo.GetExpenseByID(r.Context(), id)
 	if err != nil {
-		response.WriteError(w, http.StatusNotFound, "expense not found")
+		if errors.Is(err, repository.ErrNotFound) {
+			response.WriteError(w, http.StatusNotFound, "expense not found")
+			return
+		}
+		response.WriteError(w, http.StatusInternalServerError, "failed to get expense")
 		return
 	}
 
@@ -156,19 +135,16 @@ func (h *ExpenseHandler) Update(w http.ResponseWriter, r *http.Request) {
 	if input.Description != nil {
 		description = *input.Description
 	}
-
 	amount := existing.Amount
 	if input.Amount != nil {
 		amount = *input.Amount
 	}
-
 	date := existing.Date
 	if input.Date != nil {
 		date = *input.Date
 	}
 
-	err = h.repo.UpdateExpense(ctx, id, description, amount, date)
-	if err != nil {
+	if err := h.repo.UpdateExpense(r.Context(), id, description, amount, date); err != nil {
 		response.WriteError(w, http.StatusInternalServerError, "failed to update expense")
 		return
 	}
@@ -177,11 +153,6 @@ func (h *ExpenseHandler) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ExpenseHandler) Delete(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodDelete {
-		response.WriteError(w, http.StatusMethodNotAllowed, "method not allowed")
-		return
-	}
-
 	idStr := r.PathValue("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
@@ -189,17 +160,18 @@ func (h *ExpenseHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := context.Background()
-	err = h.repo.DeleteExpense(ctx, id)
-	if err != nil {
-		response.WriteError(w, http.StatusNotFound, "expense not found")
+	if err := h.repo.DeleteExpense(r.Context(), id); err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			response.WriteError(w, http.StatusNotFound, "expense not found")
+			return
+		}
+		response.WriteError(w, http.StatusInternalServerError, "failed to delete expense")
 		return
 	}
 
 	response.WriteSuccess(w, http.StatusOK, map[string]string{"message": "expense deleted"})
 }
 
-// to clean up the main file
 func (h *ExpenseHandler) RegisterRoutes(mux *http.ServeMux) error {
 	mux.HandleFunc("POST /expenses", h.Create)
 	mux.HandleFunc("GET /expenses/{id}", h.GetByID)

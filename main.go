@@ -16,18 +16,17 @@ import (
 func main() {
 	appConfig := config.LoadConfig()
 
-	database, err := db.OpenDB(appConfig.DbConfig.DBPath)
+	database, err := db.OpenDB(appConfig.DBPath)
 	if err != nil {
 		log.Fatalf("could not open database: %v", err)
 	}
 	defer database.Close()
 
-	// Run schema migrations and enable foreign keys.
 	if err := db.InitDB(context.Background(), database); err != nil {
 		log.Fatalf("could not initialise database: %v", err)
 	}
 
-	log.Printf("database ready at %s", appConfig.DbConfig.DBPath)
+	log.Printf("database ready at %s", appConfig.DBPath)
 
 	expenseRepo := repository.NewExpenseRepository(database)
 	expenseHandler := handlers.NewExpenseHandler(expenseRepo)
