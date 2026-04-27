@@ -145,7 +145,15 @@ Tables: `users`, `sessions`, `groups`, `group_members`, `expenses`, `expense_spl
 
 ## Current Routes
 ```
-GET  /ping
-POST /users/register   GET /users      GET /users/{id}
-POST /expenses         GET /expenses   GET /expenses/{id}   PUT /expenses/{id}   DELETE /expenses/{id}
+GET  /ping                              (public)
+POST /users/register                    (public)
+POST /auth/login                        (public)
+POST /auth/logout                       (protected)
+GET  /users        GET  /users/{id}     (protected)
+POST /expenses     GET  /expenses       (protected)
+GET  /expenses/{id}                     (protected)
+PUT  /expenses/{id}                     (protected)
+DELETE /expenses/{id}                   (protected)
 ```
+
+Protected routes require: `Authorization: Bearer <token>`

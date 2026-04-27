@@ -135,9 +135,8 @@ func (h *UserHandler) List(w http.ResponseWriter, r *http.Request) {
 	response.WriteList(w, userResponses)
 }
 
-func (h *UserHandler) RegisterRoutes(mux *http.ServeMux) error {
+func (h *UserHandler) RegisterRoutes(mux *http.ServeMux, protect func(http.HandlerFunc) http.HandlerFunc) {
 	mux.HandleFunc("POST /users/register", h.Register)
-	mux.HandleFunc("GET /users/{id}", h.GetByID)
-	mux.HandleFunc("GET /users", h.List)
-	return nil
+	mux.HandleFunc("GET /users/{id}", protect(h.GetByID))
+	mux.HandleFunc("GET /users", protect(h.List))
 }

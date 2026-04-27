@@ -28,22 +28,27 @@ func main() {
 
 	log.Printf("database ready at %s", appConfig.DBPath)
 
-	expenseRepo := repository.NewExpenseRepository(database)
-	expenseHandler := handlers.NewExpenseHandler(expenseRepo)
-
 	userRepo := repository.NewUserRepository(database)
+	expenseRepo := repository.NewExpenseRepository(database)
+	authRepo := repository.NewAuthRepository(database)
+
 	userHandler := handlers.NewUserHandler(userRepo)
+	expenseHandler := handlers.NewExpenseHandler(expenseRepo)
+	authHandler := handlers.NewAuthHandler(authRepo)
+
+	protect := handlers.NewAuthMiddleware(authRepo)
 
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /ping", func(w http.ResponseWriter, r *http.Request) {
-		if err := response.WriteSuccess(w, http.StatusOK, "we good bro :)"); err != nil {
+		if err := response.WriteSuccess(w, http.StatusOK, "pong"); err != nil {
 			log.Printf("failed to write response: %v", err)
 		}
 	})
 
-	expenseHandler.RegisterRoutes(mux)
-	userHandler.RegisterRoutes(mux)
+	authHandler.RegisterRoutes(mux, protect)
+	userHandler.RegisterRoutes(mux, protect)
+	expenseHandler.RegisterRoutes(mux, protect)
 
 	addr := fmt.Sprintf(":%s", appConfig.Port)
 	log.Printf("server listening on %s", addr)

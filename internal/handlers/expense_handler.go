@@ -172,11 +172,10 @@ func (h *ExpenseHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	response.WriteSuccess(w, http.StatusOK, map[string]string{"message": "expense deleted"})
 }
 
-func (h *ExpenseHandler) RegisterRoutes(mux *http.ServeMux) error {
-	mux.HandleFunc("POST /expenses", h.Create)
-	mux.HandleFunc("GET /expenses/{id}", h.GetByID)
-	mux.HandleFunc("GET /expenses", h.ListByUser)
-	mux.HandleFunc("PUT /expenses/{id}", h.Update)
-	mux.HandleFunc("DELETE /expenses/{id}", h.Delete)
-	return nil
+func (h *ExpenseHandler) RegisterRoutes(mux *http.ServeMux, protect func(http.HandlerFunc) http.HandlerFunc) {
+	mux.HandleFunc("POST /expenses", protect(h.Create))
+	mux.HandleFunc("GET /expenses/{id}", protect(h.GetByID))
+	mux.HandleFunc("GET /expenses", protect(h.ListByUser))
+	mux.HandleFunc("PUT /expenses/{id}", protect(h.Update))
+	mux.HandleFunc("DELETE /expenses/{id}", protect(h.Delete))
 }
