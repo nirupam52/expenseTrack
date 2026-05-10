@@ -91,6 +91,6 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AuthHandler) RegisterRoutes(mux *http.ServeMux, protect func(http.HandlerFunc) http.HandlerFunc) {
-	mux.HandleFunc("POST /auth/login", h.Login)
-	mux.HandleFunc("POST /auth/logout", protect(h.Logout))
+	mux.HandleFunc("POST /api/auth/login", h.Login)
+	mux.HandleFunc("POST /api/auth/logout", protect(h.Logout))
 }
