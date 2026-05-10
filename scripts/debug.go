@@ -19,17 +19,14 @@ func main() {
 		log.Fatalf("failed to start vite: %v", err)
 	}
 
-	config := ".air.unix.toml"
-	if runtime.GOOS == "windows" {
-		config = ".air.toml"
-	}
-	air := exec.Command("air", "-c", config)
-	air.Stdout = os.Stdout
-	air.Stderr = os.Stderr
-	air.Stdin = os.Stdin
-	if err := air.Start(); err != nil {
+	dlv := exec.Command("dlv", "debug", "--headless", "--listen=:2345",
+		"--api-version=2", "--accept-multiclient", ".")
+	dlv.Stdout = os.Stdout
+	dlv.Stderr = os.Stderr
+	dlv.Stdin = os.Stdin
+	if err := dlv.Start(); err != nil {
 		vite.Process.Kill()
-		log.Fatalf("failed to start air (is it installed? go install github.com/air-verse/air@latest): %v", err)
+		log.Fatalf("failed to start dlv: %v", err)
 	}
 
 	sig := make(chan os.Signal, 1)
@@ -37,7 +34,7 @@ func main() {
 	<-sig
 
 	vite.Process.Kill()
-	air.Process.Kill()
+	dlv.Process.Kill()
 }
 
 func npm() string {
