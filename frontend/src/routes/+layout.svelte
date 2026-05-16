@@ -1,4 +1,5 @@
 <script lang="ts">
+	import '../app.css';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { getToken, clearToken } from '$lib/auth';

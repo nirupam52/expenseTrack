@@ -20,6 +20,10 @@ async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
 		throw new Error('unauthorized');
 	}
 
+	if (!res.ok) {
+		throw new Error(`${res.status} ${res.statusText}`);
+	}
+
 	return res.json() as Promise<T>;
 }
 
@@ -38,13 +42,3 @@ export function post<T>(path: string, body: unknown): Promise<ApiResponse<T>> {
 	});
 }
 
-export function put<T>(path: string, body: unknown): Promise<ApiResponse<T>> {
-	return apiFetch<ApiResponse<T>>(path, {
-		method: 'PUT',
-		body: JSON.stringify(body),
-	});
-}
-
-export function del<T>(path: string): Promise<ApiResponse<T>> {
-	return apiFetch<ApiResponse<T>>(path, { method: 'DELETE' });
-}

@@ -61,37 +61,6 @@
 		flex-direction: column;
 		gap: 1rem;
 	}
-	label {
-		display: flex;
-		flex-direction: column;
-		gap: 0.25rem;
-		font-size: 0.875rem;
-		font-weight: 500;
-	}
-	input {
-		padding: 0.5rem;
-		border: 1px solid #d1d5db;
-		border-radius: 4px;
-		font-size: 1rem;
-	}
-	button {
-		padding: 0.625rem;
-		background: #111827;
-		color: white;
-		border: none;
-		border-radius: 4px;
-		font-size: 1rem;
-		cursor: pointer;
-	}
-	button:disabled {
-		opacity: 0.6;
-		cursor: not-allowed;
-	}
-	.error {
-		color: #dc2626;
-		font-size: 0.875rem;
-		margin: 0;
-	}
 	p {
 		margin-top: 1rem;
 		font-size: 0.875rem;

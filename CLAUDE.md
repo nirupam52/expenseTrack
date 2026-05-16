@@ -10,9 +10,7 @@ Self-hosted personal expense tracker built in Go with minimal dependencies. Goal
 
 ## Commands
 - `go run scripts/dev.go` — dev (Vite + Go, cross-platform)
-- `go run scripts/debug.go` — debug (Vite + dlv on :2345)
 - `go run scripts/build.go` — production build
-- `go run scripts/start.go` — build + run
 - `go build ./...` — verify compilation
 - `go vet ./...` — static analysis
 - `go fmt ./...` — format
