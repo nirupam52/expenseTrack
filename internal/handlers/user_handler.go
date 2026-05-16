@@ -136,7 +136,7 @@ func (h *UserHandler) List(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) RegisterRoutes(mux *http.ServeMux, protect func(http.HandlerFunc) http.HandlerFunc) {
-	mux.HandleFunc("POST /users/register", h.Register)
-	mux.HandleFunc("GET /users/{id}", protect(h.GetByID))
-	mux.HandleFunc("GET /users", protect(h.List))
+	mux.HandleFunc("POST /api/users/register", h.Register)
+	mux.HandleFunc("GET /api/users/{id}", protect(h.GetByID))
+	mux.HandleFunc("GET /api/users", protect(h.List))
 }

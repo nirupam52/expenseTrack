@@ -173,9 +173,9 @@ func (h *ExpenseHandler) Delete(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ExpenseHandler) RegisterRoutes(mux *http.ServeMux, protect func(http.HandlerFunc) http.HandlerFunc) {
-	mux.HandleFunc("POST /expenses", protect(h.Create))
-	mux.HandleFunc("GET /expenses/{id}", protect(h.GetByID))
-	mux.HandleFunc("GET /expenses", protect(h.ListByUser))
-	mux.HandleFunc("PUT /expenses/{id}", protect(h.Update))
-	mux.HandleFunc("DELETE /expenses/{id}", protect(h.Delete))
+	mux.HandleFunc("POST /api/expenses", protect(h.Create))
+	mux.HandleFunc("GET /api/expenses/{id}", protect(h.GetByID))
+	mux.HandleFunc("GET /api/expenses", protect(h.ListByUser))
+	mux.HandleFunc("PUT /api/expenses/{id}", protect(h.Update))
+	mux.HandleFunc("DELETE /api/expenses/{id}", protect(h.Delete))
 }

@@ -9,8 +9,8 @@ Self-hosted personal expense tracker built in Go with minimal dependencies. Goal
 - `golang.org/x/crypto/bcrypt` for password hashing
 
 ## Commands
-- `go run .` — start server
-- `go run scripts/dev.go` — hot reload (`.air.toml` on Windows, `.air.unix.toml` on Unix)
+- `go run scripts/dev.go` — dev (Vite + Go, cross-platform)
+- `go run scripts/build.go` — production build
 - `go build ./...` — verify compilation
 - `go vet ./...` — static analysis
 - `go fmt ./...` — format

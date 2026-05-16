@@ -11,6 +11,7 @@ import (
 	"github.com/nirupam52/expenseTrack/internal/handlers"
 	"github.com/nirupam52/expenseTrack/internal/repository"
 	"github.com/nirupam52/expenseTrack/internal/response"
+	"github.com/nirupam52/expenseTrack/internal/static"
 )
 
 func main() {
@@ -40,7 +41,7 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("GET /ping", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("GET /api/ping", func(w http.ResponseWriter, r *http.Request) {
 		if err := response.WriteSuccess(w, http.StatusOK, "pong"); err != nil {
 			log.Printf("failed to write response: %v", err)
 		}
@@ -49,6 +50,12 @@ func main() {
 	authHandler.RegisterRoutes(mux, protect)
 	userHandler.RegisterRoutes(mux, protect)
 	expenseHandler.RegisterRoutes(mux, protect)
+
+	spaHandler, err := handlers.NewSPAHandler(static.FS)
+	if err != nil {
+		log.Fatalf("could not create spa handler: %v", err)
+	}
+	mux.Handle("/", spaHandler)
 
 	addr := fmt.Sprintf(":%s", appConfig.Port)
 	log.Printf("server listening on %s", addr)
